@@ -1,0 +1,106 @@
+@model EmployeeLeaveManagement.ViewModels.LeaveAllocationViewModel
+@{
+    ViewData["Title"] = "Leave Allocation";
+}
+
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Leave Allocation</h1>
+            <p class="text-gray-500 text-sm">Assign or adjust leave balances per employee</p>
+        </div>
+    </div>
+
+    <div class="bg-white shadow rounded-xl border p-5 space-y-4">
+        <form method="get" asp-action="Index" class="flex flex-col md:flex-row gap-4 md:items-end">
+            <div class="flex-1">
+                <label class="block text-sm font-medium">Select Employee</label>
+                <select name="employeeId" class="mt-1 w-full border rounded-lg p-2">
+                    <option value="">-- Choose Employee --</option>
+                    @foreach (var employee in Model.Employees)
+                    {
+                        <option value="@employee.EmployeeId" selected="@(employee.EmployeeId == Model.SelectedEmployeeId)">
+                            @employee.Name (@employee.EmpCode)
+                        </option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Load Allocations</button>
+        </form>
+
+        <form asp-action="Assign" method="post" class="space-y-4">
+            <input type="hidden" asp-for="SelectedEmployeeId" />
+            <div asp-validation-summary="ModelOnly" class="text-red-600"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium">Employee</label>
+                    <p class="mt-2 font-semibold">
+                        @{
+                            var employee = Model.Employees.FirstOrDefault(e => e.EmployeeId == Model.SelectedEmployeeId);
+                        }
+                        @(employee != null ? $"{employee.Name} ({employee.EmpCode})" : "Select an employee")
+                    </p>
+                </div>
+                <div>
+                    <label asp-for="SelectedLeaveTypeId" class="block text-sm font-medium"></label>
+                    <select asp-for="SelectedLeaveTypeId" asp-items="@(new SelectList(Model.LeaveTypes, nameof(EmployeeLeaveManagement.ViewModels.LeaveTypeDropdownViewModel.LeaveTypeId), nameof(EmployeeLeaveManagement.ViewModels.LeaveTypeDropdownViewModel.LeaveName)))" class="mt-1 w-full border rounded-lg p-2">
+                        <option value="">-- Select Leave Type --</option>
+                    </select>
+                    <span asp-validation-for="SelectedLeaveTypeId" class="text-red-600 text-sm"></span>
+                </div>
+                <div>
+                    <label asp-for="TotalDays" class="block text-sm font-medium"></label>
+                    <input asp-for="TotalDays" class="mt-1 w-full border rounded-lg p-2" />
+                    <span asp-validation-for="TotalDays" class="text-red-600 text-sm"></span>
+                    <p class="text-xs text-gray-500 mt-1">Current balance: @Model.CurrentBalance days</p>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Save Allocation</button>
+                <a asp-action="Index" asp-route-employeeId="@Model.SelectedEmployeeId" class="border px-4 py-2 rounded-lg hover:bg-gray-100">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-white shadow rounded-xl border">
+        <div class="p-5 border-b">
+            <h2 class="text-xl font-bold">Existing Allocations</h2>
+            <p class="text-gray-500 text-sm">Current leave balances for the selected employee</p>
+        </div>
+        <div class="p-5 overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b bg-gray-50">
+                        <th class="py-3 px-4 text-sm text-gray-500">Leave Type</th>
+                        <th class="py-3 px-4 text-sm text-gray-500">Total Days</th>
+                        <th class="py-3 px-4 text-sm text-gray-500">Used Days</th>
+                        <th class="py-3 px-4 text-sm text-gray-500">Remaining Days</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Allocations.Any())
+                    {
+                        @foreach (var allocation in Model.Allocations)
+                        {
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-gray-900">@allocation.LeaveTypeName</td>
+                                <td class="py-3 px-4 text-gray-600">@allocation.TotalDays</td>
+                                <td class="py-3 px-4 text-gray-600">@allocation.UsedDays</td>
+                                <td class="py-3 px-4 text-gray-600">@allocation.RemainingDays</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="py-4 text-center text-gray-500">No allocations found for this employee.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

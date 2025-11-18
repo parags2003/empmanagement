@@ -1,0 +1,92 @@
+@model EmployeeLeaveManagement.ViewModels.EmployeeViewModel
+@{
+    ViewData["Title"] = "Edit Employee";
+}
+
+<div class="space-y-6 max-w-4xl">
+    <div class="flex items-center gap-4">
+        <a asp-controller="Employee" asp-action="Index" class="p-2 border rounded-lg hover:bg-gray-100">
+            <i class="fa fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Edit Employee</h1>
+            <p class="text-gray-500 text-sm mt-1">Update information for @Model.Name</p>
+        </div>
+    </div>
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        <input type="hidden" asp-for="EmployeeId" />
+        <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+
+        <div class="bg-white shadow-md rounded-xl border p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label asp-for="EmpCode" class="block text-sm font-medium">Employee Code *</label>
+                    <input asp-for="EmpCode" class="mt-1 w-full border rounded-lg p-2" />
+                    <span asp-validation-for="EmpCode" class="text-red-600 text-sm"></span>
+                </div>
+                <div>
+                    <label asp-for="Name" class="block text-sm font-medium">Name *</label>
+                    <input asp-for="Name" class="mt-1 w-full border rounded-lg p-2" />
+                    <span asp-validation-for="Name" class="text-red-600 text-sm"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label asp-for="Email" class="block text-sm font-medium">Email *</label>
+                    <input asp-for="Email" class="mt-1 w-full border rounded-lg p-2" />
+                    <span asp-validation-for="Email" class="text-red-600 text-sm"></span>
+                </div>
+                <div>
+                    <label asp-for="Department" class="block text-sm font-medium">Department *</label>
+                    <select asp-for="Department" class="mt-1 w-full border rounded-lg p-2">
+                        <option value="">-- Select --</option>
+                        <option>Engineering</option>
+                        <option>Product</option>
+                        <option>Design</option>
+                        <option>Marketing</option>
+                        <option>Sales</option>
+                        <option>Human Resources</option>
+                        <option>Finance</option>
+                        <option>Analytics</option>
+                        <option>Operations</option>
+                        <option>IT</option>
+                    </select>
+                    <span asp-validation-for="Department" class="text-red-600 text-sm"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label asp-for="Position" class="block text-sm font-medium">Position *</label>
+                    <input asp-for="Position" class="mt-1 w-full border rounded-lg p-2" />
+                    <span asp-validation-for="Position" class="text-red-600 text-sm"></span>
+                </div>
+                <div>
+                    <label asp-for="PhotoUpload" class="block text-sm font-medium">Photo</label>
+                    <input asp-for="PhotoUpload" type="file" class="mt-1 w-full border rounded-lg p-2" />
+                    @if (!string.IsNullOrWhiteSpace(Model.PhotoPath))
+                    {
+                        <img src="@Model.PhotoPath" alt="@Model.Name" class="mt-2 rounded-lg max-h-32" />
+                    }
+                    <span asp-validation-for="PhotoUpload" class="text-red-600 text-sm"></span>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                    Save Changes
+                </button>
+                <a asp-controller="Employee" asp-action="Index" class="flex-1 border py-2 text-center rounded-lg hover:bg-gray-100">
+                    Cancel
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
+

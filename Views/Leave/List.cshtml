@@ -1,0 +1,120 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model IEnumerable<EmployeeLeaveManagement.ViewModels.LeaveRequestListViewModel>
+@{
+    ViewData["Title"] = "Leave Management";
+}
+
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Leave Management</h1>
+            <p class="text-gray-500 text-sm">Monitor and manage leave requests</p>
+        </div>
+
+        <div class="flex gap-2">
+            <a asp-action="Apply" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                <i class="fa fa-plus"></i> Apply Leave
+            </a>
+            <a asp-action="History" class="border px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2">
+                <i class="fa fa-clock-rotate-left"></i> History
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-md rounded-xl border">
+        <div class="p-5 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold">Leave Requests</h2>
+                <p class="text-gray-500 text-sm">All pending and processed requests</p>
+            </div>
+            <form method="get" class="flex gap-2">
+                @{
+                    var currentStatus = ViewBag.StatusFilter as string;
+                    var statusOptions = ViewBag.StatusOptions as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+                }
+                <select name="status" class="border rounded-lg py-2 px-3" asp-items="statusOptions"></select>
+                <button type="submit" class="border px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2">
+                    <i class="fa fa-filter"></i> Apply
+                </button>
+                @if (!string.IsNullOrWhiteSpace(currentStatus))
+                {
+                    <a href="@Url.Action("List", "Leave")" class="border px-4 py-2 rounded-lg hover:bg-gray-100">Reset</a>
+                }
+            </form>
+        </div>
+
+        <div class="p-5 overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b bg-gray-50">
+                        <th class="py-3 px-4 text-gray-500 text-sm">Employee</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Leave Type</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Period</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Days</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Reason</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Status</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Remaining</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var request in Model)
+                        {
+                            <tr class="border-b hover:bg-gray-50 transition">
+                                <td class="py-3 px-4">
+                                    <p class="font-medium text-gray-900">@request.EmployeeName</p>
+                                    <p class="text-sm text-gray-500">@request.EmpCode</p>
+                                </td>
+                                <td class="py-3 px-4 text-gray-600">@request.LeaveTypeName</td>
+                                <td class="py-3 px-4 text-gray-600">
+                                    @request.StartDate.ToString("dd MMM yyyy") - @request.EndDate.ToString("dd MMM yyyy")
+                                </td>
+                                <td class="py-3 px-4 text-gray-600">@request.TotalDays</td>
+                                <td class="py-3 px-4 text-gray-600">@request.Reason</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium @GetStatusBadge(request.Status)">
+                                        @request.Status
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-gray-600">@request.RemainingDays</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex gap-2">
+                                        <form asp-action="Approve" method="post" class="inline">
+                                            <input type="hidden" name="id" value="@request.LeaveRequestId" />
+                                            <button type="submit" class="text-green-600 text-sm hover:underline">Approve</button>
+                                        </form>
+                                        <form asp-action="Reject" method="post" class="inline">
+                                            <input type="hidden" name="id" value="@request.LeaveRequestId" />
+                                            <button type="submit" class="text-red-600 text-sm hover:underline">Reject</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="py-4 text-center text-gray-500">No leave requests found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@functions{
+    string GetStatusBadge(string status)
+    {
+        return status switch
+        {
+            "Approved" => "bg-green-100 text-green-700",
+            "Rejected" => "bg-red-100 text-red-700",
+            _ => "bg-yellow-100 text-yellow-700"
+        };
+    }
+}
+

@@ -1,0 +1,50 @@
+@model EmployeeLeaveManagement.ViewModels.EmployeeViewModel
+@{
+    ViewData["Title"] = "Employee Details";
+}
+
+<div class="space-y-6 max-w-3xl">
+    <div class="flex items-center gap-4">
+        <a asp-controller="Employee" asp-action="Index" class="p-2 border rounded-lg hover:bg-gray-100">
+            <i class="fa fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Employee Details</h1>
+            <p class="text-gray-500 text-sm mt-1">Review information for @Model.Name</p>
+        </div>
+    </div>
+
+    <div class="bg-white shadow rounded-xl border p-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-sm text-gray-500">Employee Code</p>
+                <p class="text-lg font-semibold">@Model.EmpCode</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Name</p>
+                <p class="text-lg font-semibold">@Model.Name</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Email</p>
+                <p class="text-lg font-semibold">@Model.Email</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Department</p>
+                <p class="text-lg font-semibold">@Model.Department</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Position</p>
+                <p class="text-lg font-semibold">@Model.Position</p>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.PhotoPath))
+        {
+            <div>
+                <p class="text-sm text-gray-500 mb-2">Photo</p>
+                <img src="@Model.PhotoPath" alt="@Model.Name" class="rounded-lg max-h-48" />
+            </div>
+        }
+    </div>
+</div>
+

@@ -1,0 +1,114 @@
+@model IEnumerable<EmployeeLeaveManagement.ViewModels.EmployeeViewModel>
+@{
+    ViewData["Title"] = "Employees";
+}
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Employees</h1>
+            <p class="text-gray-500 text-sm">Manage your team members</p>
+        </div>
+
+        <a asp-controller="Employee" asp-action="Create"
+           class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            <i class="fa fa-plus"></i>
+            Add Employee
+        </a>
+    </div>
+
+    <!-- Employee List Card -->
+    <div class="bg-white shadow-md rounded-xl border">
+        <!-- Card Header -->
+        <div class="p-5 border-b">
+            <div class="flex flex-col sm:flex-row gap-4 justify-between">
+                <div>
+                    <h2 class="text-xl font-bold">Employee List</h2>
+                    <p class="text-gray-500 text-sm">A list of all employees in your organization</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <button class="border px-3 py-2 rounded-md flex items-center gap-2 text-sm">
+                        <i class="fa fa-filter"></i> Filter
+                    </button>
+                    <button class="border px-3 py-2 rounded-md flex items-center gap-2 text-sm">
+                        <i class="fa fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <form method="get" class="relative mt-4">
+                <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text"
+                       name="searchTerm"
+                       value="@(ViewBag.SearchTerm ?? string.Empty)"
+                       placeholder="Search employees..."
+                       class="w-full pl-10 pr-24 border rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
+                {
+                    <a href="@Url.Action("Index", "Employee")"
+                       class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-blue-600 hover:underline">Reset</a>
+                }
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="p-5 overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b bg-gray-50">
+                        <th class="py-3 px-4 text-gray-500 text-sm">Employee Code</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Name</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Email</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Position</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Department</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Status</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var emp in Model)
+                        {
+                            <tr class="border-b hover:bg-gray-50 transition">
+                                <td class="py-3 px-4 font-medium text-gray-900">@emp.EmpCode</td>
+                                <td class="py-3 px-4 font-medium text-gray-900">@emp.Name</td>
+                                <td class="py-3 px-4 text-gray-600">@emp.Email</td>
+                                <td class="py-3 px-4 text-gray-600">@emp.Position</td>
+                                <td class="py-3 px-4 text-gray-600">@emp.Department</td>
+
+                                <td class="py-3 px-4">
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                        Active
+                                    </span>
+                                </td>
+
+                                <td class="py-3 px-4">
+                                    <div class="flex gap-2">
+                                        <a asp-controller="Employee" asp-action="Details" asp-route-id="@emp.EmployeeId" 
+                                           class="text-blue-600 text-sm hover:underline">View</a>
+                                        <a asp-controller="Employee" asp-action="Edit" asp-route-id="@emp.EmployeeId" 
+                                           class="text-blue-600 text-sm hover:underline">Edit</a>
+                                        <a asp-controller="Employee" asp-action="Delete" asp-route-id="@emp.EmployeeId" 
+                                           class="text-red-600 text-sm hover:underline">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="py-3 px-4 text-center text-gray-500">No employees found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

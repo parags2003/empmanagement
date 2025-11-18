@@ -1,0 +1,94 @@
+@model IEnumerable<EmployeeLeaveManagement.ViewModels.LeaveRequestListViewModel>
+@{
+    ViewData["Title"] = "Leave History";
+}
+
+<div class="space-y-6">
+    <div class="flex items-center gap-4">
+        <a asp-action="List" class="p-2 border rounded-lg hover:bg-gray-100">
+            <i class="fa fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Leave History</h1>
+            <p class="text-gray-500 text-sm mt-1">All historical leave records</p>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-md rounded-xl border">
+        <div class="p-5 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold">History</h2>
+                <p class="text-gray-500 text-sm">Search by employee</p>
+            </div>
+            <form method="get" class="flex gap-2">
+                <input type="number" name="employeeId" placeholder="Employee ID" value="@(ViewBag.EmployeeFilter ?? "")" class="border rounded-lg py-2 px-3" />
+                <button type="submit" class="border px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2">
+                    <i class="fa fa-search"></i> Search
+                </button>
+                @if (ViewBag.EmployeeFilter != null)
+                {
+                    <a href="@Url.Action("History", "Leave")" class="border px-4 py-2 rounded-lg hover:bg-gray-100">Reset</a>
+                }
+            </form>
+        </div>
+
+        <div class="p-5 overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b bg-gray-50">
+                        <th class="py-3 px-4 text-gray-500 text-sm">Employee</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Leave Type</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Period</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Days</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Status</th>
+                        <th class="py-3 px-4 text-gray-500 text-sm">Remaining</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var request in Model)
+                        {
+                            <tr class="border-b hover:bg-gray-50 transition">
+                                <td class="py-3 px-4">
+                                    <p class="font-medium text-gray-900">@request.EmployeeName</p>
+                                    <p class="text-sm text-gray-500">@request.EmpCode</p>
+                                </td>
+                                <td class="py-3 px-4 text-gray-600">@request.LeaveTypeName</td>
+                                <td class="py-3 px-4 text-gray-600">
+                                    @request.StartDate.ToString("dd MMM yyyy") - @request.EndDate.ToString("dd MMM yyyy")
+                                </td>
+                                <td class="py-3 px-4 text-gray-600">@request.TotalDays</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium @GetStatusBadge(request.Status)">
+                                        @request.Status
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-gray-600">@request.RemainingDays</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="py-4 text-center text-gray-500">No leave records found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@functions{
+    string GetStatusBadge(string status)
+    {
+        return status switch
+        {
+            "Approved" => "bg-green-100 text-green-700",
+            "Rejected" => "bg-red-100 text-red-700",
+            _ => "bg-yellow-100 text-yellow-700"
+        };
+    }
+}
+
