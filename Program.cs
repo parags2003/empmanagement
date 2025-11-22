@@ -10,11 +10,34 @@ builder.Services.AddControllersWithViews();
 
 // Configure Entity Framework Core with PostgreSQL
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// Try to get connection string from multiple sources
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? builder.Configuration["ConnectionStrings:DefaultConnection"]
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+// Log for debugging (without exposing sensitive data)
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    var envVars = Environment.GetEnvironmentVariables();
+    var hasConnectionString = envVars.Keys.Cast<string>().Any(k => 
+        k.Contains("ConnectionString", StringComparison.OrdinalIgnoreCase));
+    
+    Console.WriteLine($"❌ Connection string not found!");
+    Console.WriteLine($"   Environment variable 'ConnectionStrings__DefaultConnection' exists: {hasConnectionString}");
+    Console.WriteLine($"   Available env vars with 'Connection': {string.Join(", ", envVars.Keys.Cast<string>().Where(k => k.Contains("Connection", StringComparison.OrdinalIgnoreCase)))}");
+    
+    throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' not found. " +
+        "Please set the environment variable 'ConnectionStrings__DefaultConnection' in Render.");
+}
+else
+{
+    // Log that connection string was found (but don't log the actual value for security)
+    var connectionStringPreview = connectionString.Length > 50 
+        ? connectionString.Substring(0, 50) + "..." 
+        : connectionString;
+    Console.WriteLine($"✅ Connection string found: {connectionStringPreview}");
 }
 
 // Helper function to convert PostgreSQL URL format to standard connection string
@@ -90,16 +113,29 @@ builder.Services.AddScoped<ILeaveService, LeaveService>();
 
 var app = builder.Build();
 
-// Test database connection on startup (for both development and production)
+// Test database connection and apply migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
+        // Check if database can connect
         var canConnect = dbContext.Database.CanConnect();
         if (canConnect)
         {
             app.Logger.LogInformation("✅ Successfully connected to PostgreSQL database.");
+            
+            // Apply pending migrations automatically (useful for Render deployments)
+            try
+            {
+                app.Logger.LogInformation("🔄 Applying database migrations...");
+                dbContext.Database.Migrate();
+                app.Logger.LogInformation("✅ Database migrations applied successfully.");
+            }
+            catch (Exception migrateEx)
+            {
+                app.Logger.LogWarning(migrateEx, "⚠️ Could not apply migrations. Database may already be up to date.");
+            }
         }
         else
         {
