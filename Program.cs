@@ -17,48 +17,36 @@ if (string.IsNullOrEmpty(connectionString))
     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 }
 
-// Convert PostgreSQL URL format to standard connection string format if needed
-connectionString = ConvertPostgresUrlToConnectionString(connectionString);
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString, npgsqlOptions =>
-    {
-        npgsqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 3,
-            maxRetryDelay: TimeSpan.FromSeconds(5),
-            errorCodesToAdd: null);
-    }));
-
-// Helper method to convert PostgreSQL URL format to standard connection string
-static string ConvertPostgresUrlToConnectionString(string connectionString)
+// Helper function to convert PostgreSQL URL format to standard connection string
+string ConvertPostgresUrlToConnectionString(string connString)
 {
     // If it's already in standard format (contains "Host="), return as is
-    if (connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase))
+    if (connString.Contains("Host=", StringComparison.OrdinalIgnoreCase))
     {
         // Ensure SSL parameters are present for cloud databases (like Render)
-        if (!connectionString.Contains("SSL Mode", StringComparison.OrdinalIgnoreCase) &&
-            !connectionString.Contains("localhost", StringComparison.OrdinalIgnoreCase))
+        if (!connString.Contains("SSL Mode", StringComparison.OrdinalIgnoreCase) &&
+            !connString.Contains("localhost", StringComparison.OrdinalIgnoreCase))
         {
             // Add SSL parameters for cloud PostgreSQL (Render, etc.)
-            if (connectionString.EndsWith(";"))
+            if (connString.EndsWith(";"))
             {
-                connectionString += "SSL Mode=Require;Trust Server Certificate=true";
+                connString += "SSL Mode=Require;Trust Server Certificate=true";
             }
             else
             {
-                connectionString += ";SSL Mode=Require;Trust Server Certificate=true";
+                connString += ";SSL Mode=Require;Trust Server Certificate=true";
             }
         }
-        return connectionString;
+        return connString;
     }
 
     // If it's in URL format (postgresql://...), convert it
-    if (connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) ||
-        connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+    if (connString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) ||
+        connString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
     {
         try
         {
-            var uri = new Uri(connectionString);
+            var uri = new Uri(connString);
             var host = uri.Host;
             var port = uri.Port > 0 ? uri.Port : 5432;
             var database = uri.AbsolutePath.TrimStart('/');
@@ -71,12 +59,24 @@ static string ConvertPostgresUrlToConnectionString(string connectionString)
         catch
         {
             // If parsing fails, return original string
-            return connectionString;
+            return connString;
         }
     }
 
-    return connectionString;
+    return connString;
 }
+
+// Convert PostgreSQL URL format to standard connection string format if needed
+connectionString = ConvertPostgresUrlToConnectionString(connectionString);
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorCodesToAdd: null);
+    }));
 
 // Register Repositories for Dependency Injection
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
