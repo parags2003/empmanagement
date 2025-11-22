@@ -44,12 +44,19 @@ EmployeeLeaveManagement/
 ## Deploying to Render (free tier)
 
 1. **Push to GitHub.**
-2. **Create a free Render PostgreSQL instance** and copy its connection string.
-3. **Create a Render Web Service** (runtime: .NET 8). Use build command `dotnet restore && dotnet publish -c Release -o out` and start command `dotnet out/EmployeeLeaveManagement.dll`.
+2. **Create a free Render PostgreSQL instance** and copy its connection string (it will be in URL format like `postgresql://user:pass@host:port/db`).
+3. **Create a Render Web Service** (runtime: .NET 8). Use build command `dotnet restore && dotnet publish -c Release -o out` and start command `dotnet out/EmployeeLeaveManagement.dll`.
 4. In Render → **Environment** add:
    - `ASPNETCORE_ENVIRONMENT=Production`
    - `ConnectionStrings__DefaultConnection=<your Render PostgreSQL connection string>`
-5. Deploy. Every git push to the selected branch will trigger an automatic build/release.
+   
+   **Important:** The application automatically converts PostgreSQL URL format to standard format, so you can use the connection string directly from Render (both URL format `postgresql://...` and standard format `Host=...` work).
+5. **Run migrations on Render:** After first deployment, you may need to run migrations. You can either:
+   - SSH into the Render service and run `dotnet ef database update`
+   - Or add a build script that runs migrations automatically
+6. Deploy. Every git push to the selected branch will trigger an automatic build/release.
+
+**Note:** The application includes automatic SSL configuration for cloud PostgreSQL databases, so no additional SSL settings are needed.
 
 ## Features
 
